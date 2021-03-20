@@ -1,0 +1,335 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>myknn</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-01-14"><meta name="DC.source" content="myknn.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">classdef</span> myknn
+
+    <span class="keyword">methods</span>(Static)
+
+        <span class="comment">% no parameters and one hyperparameter (k)</span>
+        <span class="keyword">function</span> m = fit(train_examples, train_labels, k)
+
+            <span class="comment">% start of standardisation process (z-score standardisation)</span>
+            <span class="comment">% implementing standardsation to re-scale all of the values</span>
+            <span class="comment">% to avoid features wihtin the table dominating the Euclidean distance calculations</span>
+			m.mean = mean(train_examples{:, :}); <span class="comment">% mean of all training examples</span>
+			m.std = std(train_examples{:, :}); <span class="comment">% standard deviation of all training examples</span>
+
+            <span class="comment">% loops through all examples using the height of the train examples column</span>
+            <span class="keyword">for</span> i = 1:1:size(train_examples, 1)
+                <span class="comment">% standardises each training exmaple...</span>
+				train_examples{i, :} = train_examples{i, :} - m.mean;
+                train_examples{i, :} = train_examples{i, :} ./ m.std;
+            <span class="keyword">end</span>
+            <span class="comment">% end of standardisation process</span>
+
+            <span class="comment">% after standardisation, training examples &amp; labels are returned</span>
+            m.train_examples = train_examples;
+            m.train_labels = train_labels;
+
+            <span class="comment">% no. of neighbours considered when classifying an example</span>
+            m.k = k; <span class="comment">% entered when calling the fit() method within the 3rd argument</span>
+
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> predictions = predict(m, test_examples)
+
+            predictions = categorical; <span class="comment">% empty categorical array to store predicitons</span>
+
+            <span class="comment">% loops through all examples using the height of the test examples</span>
+            <span class="keyword">for</span> i=1:size(test_examples, 1)
+
+                <span class="comment">% prints the number of the current test example being classified</span>
+                fprintf(<span class="string">'classifying example example %i/%i\n'</span>, i, size(test_examples, 1));
+
+                <span class="comment">% extracts one example from test examples column</span>
+                this_test_example = test_examples{i,:};
+
+                <span class="comment">% start of standardisation process</span>
+                this_test_example = this_test_example - m.mean;
+                this_test_example = this_test_example ./ m.std;
+                <span class="comment">% end of standardisation process</span>
+
+                <span class="comment">% each test example is passed through the predict_one function</span>
+                this_prediction = myknn.predict_one(m, this_test_example);
+
+                <span class="comment">% adds the prediction to the end of the 'predictions' categorical array</span>
+                predictions(end+1) = this_prediction;
+            <span class="keyword">end</span>
+
+        <span class="keyword">end</span>
+
+        <span class="comment">% slower classification the more training examples there are...</span>
+        <span class="keyword">function</span> prediction = predict_one(m, this_test_example)
+
+            <span class="comment">% calulcates the straight line distance between two co-oridinates</span>
+            <span class="comment">% (the testing example and all the training examples)</span>
+            <span class="comment">% returns the distances array containing all Euclidean distances</span>
+            distances = myknn.calculate_distances(m, this_test_example);
+
+            <span class="comment">% calculates the k shortest distances between the test example</span>
+            <span class="comment">% and all the training examples, e.g. k = 10 (10 nearest neighbours)</span>
+            <span class="comment">% returns the neighbour_indices array containing the row number</span>
+            <span class="comment">% of the training example's data which are the k nearest neighbours</span>
+            neighbour_indices = myknn.find_nn_indices(m, distances);
+
+            <span class="comment">% predict the class of the current testing example based the most common class</span>
+            <span class="comment">% of the current testing example's k nearest neighbours</span>
+            prediction = myknn.make_prediction(m, neighbour_indices);
+
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> distances = calculate_distances(m, this_test_example)
+
+			distances = []; <span class="comment">% empty array</span>
+            <span class="comment">% loops through all examples using the height of the train examples</span>
+            <span class="keyword">for</span> i=1:size(m.train_examples, 1)
+
+                <span class="comment">% extracts one training example from train examples</span>
+				this_training_example = m.train_examples{i, :};
+
+                <span class="comment">% calculates the distance between the current testing &amp; training examples</span>
+                this_distance = myknn.calculate_distance(this_training_example, this_test_example);
+
+                <span class="comment">% adds the calculated Euclidean distance to the end of the array</span>
+                distances(end + 1) = this_distance;
+            <span class="keyword">end</span>
+
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> distance = calculate_distance(p, q)
+            <span class="comment">% calculating the Euclidean distance between any 2 examples</span>
+			differences = q - p; <span class="comment">% calculates the difference between training example's data &amp; testing example's data</span>
+            squares = differences .^ 2; <span class="comment">% squares each value within the row (converts to positive value)</span>
+            total = sum(squares); <span class="comment">%  sums all the values within the row</span>
+            distance = sqrt(total); <span class="comment">% square root of the total to calculate the Euclidean distance</span>
+
+        <span class="keyword">end</span>
+
+        <span class="comment">% low k = overfitting training data --- % high k = underfitting training data</span>
+        <span class="keyword">function</span> neighbour_indices = find_nn_indices(m, distances)
+
+            <span class="comment">% sorts the distances array &amp; stores the indices of the sorted array</span>
+			[sorted, indices] = sort(distances);
+            <span class="comment">% extracts the k shortest distances, e.g. 1 to 10, if k = 10)</span>
+            neighbour_indices = indices(1:m.k);
+
+		<span class="keyword">end</span>
+
+        <span class="keyword">function</span> prediction = make_prediction(m, neighbour_indices)
+
+            <span class="comment">% extracts the corresponding labels for the neighbour indices array</span>
+            <span class="comment">% (the neighbour indices array is based on the current testing example)</span>
+			neighbour_labels = m.train_labels(neighbour_indices);
+
+            <span class="comment">% returns the most common label as a prediction</span>
+            prediction = mode(neighbour_labels);
+
+		<span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">
+ans = 
+
+  myknn with no properties.
+
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+classdef myknn
+    
+    methods(Static)
+        
+        % no parameters and one hyperparameter (k)
+        function m = fit(train_examples, train_labels, k)
+            
+            % start of standardisation process (z-score standardisation)
+            % implementing standardsation to re-scale all of the values 
+            % to avoid features wihtin the table dominating the Euclidean distance calculations
+			m.mean = mean(train_examples{:, :}); % mean of all training examples
+			m.std = std(train_examples{:, :}); % standard deviation of all training examples
+            
+            % loops through all examples using the height of the train examples column
+            for i = 1:1:size(train_examples, 1)
+                % standardises each training exmaple...
+				train_examples{i, :} = train_examples{i, :} - m.mean;
+                train_examples{i, :} = train_examples{i, :} ./ m.std;
+            end
+            % end of standardisation process
+            
+            % after standardisation, training examples & labels are returned
+            m.train_examples = train_examples;
+            m.train_labels = train_labels;
+            
+            % no. of neighbours considered when classifying an example
+            m.k = k; % entered when calling the fit() method within the 3rd argument
+        
+        end
+
+        function predictions = predict(m, test_examples)
+
+            predictions = categorical; % empty categorical array to store predicitons
+            
+            % loops through all examples using the height of the test examples
+            for i=1:size(test_examples, 1)
+                
+                % prints the number of the current test example being classified
+                fprintf('classifying example example %i/%i\n', i, size(test_examples, 1));
+                
+                % extracts one example from test examples column
+                this_test_example = test_examples{i,:};
+                
+                % start of standardisation process
+                this_test_example = this_test_example - m.mean;
+                this_test_example = this_test_example ./ m.std;
+                % end of standardisation process
+                
+                % each test example is passed through the predict_one function
+                this_prediction = myknn.predict_one(m, this_test_example);
+                
+                % adds the prediction to the end of the 'predictions' categorical array 
+                predictions(end+1) = this_prediction;
+            end
+            
+        end
+
+        % slower classification the more training examples there are...
+        function prediction = predict_one(m, this_test_example)
+            
+            % calulcates the straight line distance between two co-oridinates
+            % (the testing example and all the training examples)
+            % returns the distances array containing all Euclidean distances
+            distances = myknn.calculate_distances(m, this_test_example);
+            
+            % calculates the k shortest distances between the test example
+            % and all the training examples, e.g. k = 10 (10 nearest neighbours)
+            % returns the neighbour_indices array containing the row number
+            % of the training example's data which are the k nearest neighbours
+            neighbour_indices = myknn.find_nn_indices(m, distances);
+            
+            % predict the class of the current testing example based the most common class
+            % of the current testing example's k nearest neighbours
+            prediction = myknn.make_prediction(m, neighbour_indices);
+        
+        end
+
+        function distances = calculate_distances(m, this_test_example)
+            
+			distances = []; % empty array
+            % loops through all examples using the height of the train examples
+            for i=1:size(m.train_examples, 1)
+                
+                % extracts one training example from train examples
+				this_training_example = m.train_examples{i, :};
+                
+                % calculates the distance between the current testing & training examples
+                this_distance = myknn.calculate_distance(this_training_example, this_test_example);
+                
+                % adds the calculated Euclidean distance to the end of the array
+                distances(end + 1) = this_distance;
+            end
+            
+        end
+
+        function distance = calculate_distance(p, q)
+            % calculating the Euclidean distance between any 2 examples
+			differences = q - p; % calculates the difference between training example's data & testing example's data 
+            squares = differences .^ 2; % squares each value within the row (converts to positive value)
+            total = sum(squares); %  sums all the values within the row
+            distance = sqrt(total); % square root of the total to calculate the Euclidean distance 
+        
+        end
+
+        % low k = overfitting training data REPLACE_WITH_DASH_DASH- % high k = underfitting training data 
+        function neighbour_indices = find_nn_indices(m, distances)
+            
+            % sorts the distances array & stores the indices of the sorted array
+			[sorted, indices] = sort(distances);
+            % extracts the k shortest distances, e.g. 1 to 10, if k = 10)
+            neighbour_indices = indices(1:m.k);
+        
+		end
+        
+        function prediction = make_prediction(m, neighbour_indices)
+
+            % extracts the corresponding labels for the neighbour indices array 
+            % (the neighbour indices array is based on the current testing example)
+			neighbour_labels = m.train_labels(neighbour_indices);
+            
+            % returns the most common label as a prediction
+            prediction = mode(neighbour_labels);
+        
+		end
+
+    end
+    
+end
+
+
+##### SOURCE END #####
+--></body></html>

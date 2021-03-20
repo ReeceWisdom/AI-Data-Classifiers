@@ -1,0 +1,569 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>mytree</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-01-14"><meta name="DC.source" content="mytree.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">classdef</span> mytree
+
+    <span class="keyword">methods</span>(Static)
+
+        <span class="keyword">function</span> m = fit(train_examples, train_labels)
+
+			emptyNode.number = []; <span class="comment">% stores the unique number of nodes</span>
+            emptyNode.examples = []; <span class="comment">% stores training examples</span>
+            emptyNode.labels = []; <span class="comment">% stores training labels</span>
+            emptyNode.prediction = []; <span class="comment">% a prediction basd on any class labels the node holds</span>
+            emptyNode.impurityMeasure = []; <span class="comment">% numeric measurement of the impurity of any class labels held by a node</span>
+            emptyNode.children = {}; <span class="comment">% stores the split node's data</span>
+            emptyNode.splitFeature = []; <span class="comment">% stores the column number which defines the split</span>
+            emptyNode.splitFeatureName = []; <span class="comment">% stores the name which defines the split</span>
+            emptyNode.splitValue = []; <span class="comment">% stores the value which defines the split</span>
+
+            m.emptyNode = emptyNode;
+
+            r = emptyNode; <span class="comment">% creates an root empty node</span>
+            r.number = 1; <span class="comment">% assigns 1 as the root node's number</span>
+            r.labels = train_labels; <span class="comment">% copies all model training labels</span>
+            r.examples = train_examples; <span class="comment">% copies all model training examples</span>
+            r.prediction = mode(r.labels);
+            <span class="comment">% generates single class prediction for the data</span>
+            <span class="comment">% IF the root node cannot be further split</span>
+
+            m.min_parent_size = 10; <span class="comment">% minimum number of examples a node must contain before considering splitting</span>
+            <span class="comment">% (allowing deep decision trees can lead to overfitting training data)</span>
+            m.unique_classes = unique(r.labels); <span class="comment">% list of all the unique training labels</span>
+            m.feature_names = train_examples.Properties.VariableNames; <span class="comment">% list of all the examples' individual features</span>
+			m.nodes = 1; <span class="comment">% current number of nodes in the tree           (copying the names of the table's column headers)</span>
+            m.N = size(train_examples, 1); <span class="comment">% total number of training examples used to train the model</span>
+
+            m.tree = mytree.trySplit(m, r);
+            <span class="comment">% generates the tree by passing the root node to the function.</span>
+            <span class="comment">% the function tests to see whether a node can be split into two child nodes with a reduced overall impurity</span>
+            <span class="comment">% the function is recusive and only returns once it's no longer possible to split any more nodes</span>
+            <span class="comment">% either due because the nodes don't contain enough training examples OR</span>
+            <span class="comment">% because no split is available that will reduce the overall impurity</span>
+
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> node = trySplit(m, node)
+
+            <span class="comment">% checks whether the current node is large enough to split</span>
+            <span class="keyword">if</span> size(node.examples, 1) &lt; m.min_parent_size
+				<span class="keyword">return</span>
+            <span class="keyword">end</span>
+
+            <span class="comment">% measures the current impurity of the node's class labels using Gini's Diversity Index (GDI)</span>
+            node.impurityMeasure = mytree.weightedImpurity(m, node.labels);
+
+            <span class="comment">% loops through all the current node's data features (4)</span>
+            <span class="keyword">for</span> i=1:size(node.examples, 2)
+
+                <span class="comment">% evaulates all the possible splits on the data's features (column names)</span>
+				fprintf(<span class="string">'evaluating possible splits on feature %d/%d\n'</span>, i, size(node.examples, 2));
+                <span class="comment">% sorts &amp; indexes the examples based on the current feature</span>
+				[ps,n] = sortrows(node.examples, i);
+                <span class="comment">% stores the labels of the sorted examples based on index</span>
+                ls = node.labels(n);
+
+                biggest_reduction(i) = -Inf;
+                biggest_reduction_index(i) = -1;
+                biggest_reduction_value(i) = NaN;
+
+                <span class="comment">% considers splitting the current node's stored training data</span>
+                <span class="comment">% on every unique value (inner loop) of every feature (outer loop)</span>
+                <span class="comment">% if all features' values are unique, then</span>
+                <span class="comment">% the number of possible splits = no. of examples - 1</span>
+                <span class="keyword">for</span> j=1:(size(ps,1)-1)
+                    <span class="comment">% if the next feature value is the same as the current value it's skipped</span>
+                    <span class="keyword">if</span> ps{j,i} == ps{j+1,i}
+                    <span class="comment">% (prevents trying to split on the same value more than once)</span>
+                        <span class="keyword">continue</span>;
+                    <span class="keyword">end</span>
+
+                    <span class="comment">% after generating all the possible splits from every unique value of every feature</span>
+                    <span class="comment">% a split is chosen based on which split reduces the impurity amongst the labels the most (GDI)</span>
+
+                    <span class="comment">% Then, the GDI of both potential child nodes are calulcated, added and subtracted from the parent node,</span>
+                    <span class="comment">% if the result is positive then the split produces a reduction in impurity</span>
+                    this_reduction = node.impurityMeasure - (mytree.weightedImpurity(m, ls(1:j)) + mytree.weightedImpurity(m, ls((j+1):end)));
+
+                    <span class="comment">% if the current split's reduction in impurity is greater than</span>
+                    <span class="comment">% the previous reduction, the current becomes the biggest reduction</span>
+                    <span class="comment">% and is stored in the 'biggest_reduction' array</span>
+                    <span class="keyword">if</span> this_reduction &gt; biggest_reduction(i)
+                        biggest_reduction(i) = this_reduction;
+                        <span class="comment">% stores the index of each biggest reduction</span>
+                        biggest_reduction_index(i) = j;
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+
+            <span class="keyword">end</span>
+
+
+            <span class="comment">% winning reduction = value of greatest reduction within the array</span>
+            <span class="comment">% winning feature = feature of which the winning reduction value</span>
+            [winning_reduction,winning_feature] = max(biggest_reduction);
+            <span class="comment">% winning index = poisition of the value within the feature's column</span>
+            winning_index = biggest_reduction_index(winning_feature);
+
+            <span class="comment">% if the node's impurity is greater than 0, it did not produce</span>
+            <span class="comment">% a reduction in impurity and is returned</span>
+            <span class="keyword">if</span> winning_reduction &lt;= 0
+                <span class="keyword">return</span>
+            <span class="comment">% if the node's impurity is less than or equal to 0,</span>
+            <span class="comment">% it did produce a reduction in impurity and is split...</span>
+            <span class="keyword">else</span>
+                <span class="comment">% sorts &amp; indexes the examples based on the feature of which the split happen</span>
+                [ps,n] = sortrows(node.examples,winning_feature);
+                <span class="comment">% stores the labels of the examples based on their index</span>
+                ls = node.labels(n);
+
+                <span class="comment">% stores the index of the table column (label) of which the split will occur</span>
+                node.splitFeature = winning_feature;
+                <span class="comment">% stores the name of the table column (label) of which the split will occur</span>
+                node.splitFeatureName = m.feature_names{winning_feature};
+                <span class="comment">% stores the value for which the split occur</span>
+                <span class="comment">% this method of calculation is used to determine the exact value</span>
+                <span class="comment">% between the chosen value and the next value</span>
+                node.splitValue = (ps{winning_index,winning_feature} + ps{winning_index+1,winning_feature}) / 2;
+
+                <span class="comment">% deletes current node's examples &amp; labels as they will</span>
+                <span class="comment">% move to the 2 child nodes after splitting</span>
+                node.examples = [];
+                node.labels = [];
+                <span class="comment">% deletes current node's predicition as it will never be</span>
+                <span class="comment">% used during the prediction phase</span>
+                node.prediction = [];
+
+                node.children{1} = m.emptyNode; <span class="comment">% creates child node 1</span>
+                m.nodes = m.nodes + 1; <span class="comment">% adds 1 to the total number of unique nodes</span>
+                node.children{1}.number = m.nodes; <span class="comment">% assigns the new unique number to the new child node</span>
+                <span class="comment">% populates the node with examples from the 1st example to the index of the chosen split value</span>
+                node.children{1}.examples = ps(1:winning_index,:);
+                <span class="comment">% populates the node with labels from the 1st label to the index of the chosen split value</span>
+                node.children{1}.labels = ls(1:winning_index);
+                <span class="comment">% a prediciton based on the most common label within the new child node</span>
+                node.children{1}.prediction = mode(node.children{1}.labels);
+
+                node.children{2} = m.emptyNode; <span class="comment">% creates child node 2</span>
+                m.nodes = m.nodes + 1; <span class="comment">% adds 1 to the total number of unique nodes</span>
+                node.children{2}.number = m.nodes; <span class="comment">% assigns the new unique number to the new child node</span>
+                <span class="comment">% populates the node with examples from the index of the chosen split value to the end</span>
+                node.children{2}.examples = ps((winning_index+1):end,:);
+                <span class="comment">% populates the node with labels from the chosen split value to the end</span>
+                node.children{2}.labels = ls((winning_index+1):end);
+                <span class="comment">% a prediciton based on the most common label within the new child node</span>
+                node.children{2}.prediction = mode(node.children{2}.labels);
+
+                <span class="comment">% performs the trySplit function on both new child nodes</span>
+                <span class="comment">% continues recursively until a split is no longer possible</span>
+                node.children{1} = mytree.trySplit(m, node.children{1});
+                node.children{2} = mytree.trySplit(m, node.children{2});
+            <span class="keyword">end</span>
+
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> e = weightedImpurity(m, labels)
+
+            <span class="comment">% weight variable is used re-scale the GDI scores</span>
+            <span class="comment">% so a fair comparison is made between the impurity of a parent node vs 2 potential child nodes</span>
+            weight = length(labels) / m.N;
+
+            summ = 0;
+            obsInThisNode = length(labels);
+            <span class="keyword">for</span> i=1:length(m.unique_classes)
+
+				pc = length(labels(labels==m.unique_classes(i))) / obsInThisNode;
+                summ = summ + (pc*pc);
+
+			<span class="keyword">end</span>
+            g = 1 - summ;
+            e = weight * g;
+
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> predictions = predict(m, test_examples)
+
+            predictions = categorical;
+
+            <span class="comment">% loops through all test examples</span>
+            <span class="keyword">for</span> i=1:size(test_examples,1)
+
+				fprintf(<span class="string">'classifying example %i/%i\n'</span>, i, size(test_examples,1));
+                <span class="comment">% extracts the current test example</span>
+                this_test_example = test_examples{i,:};
+                <span class="comment">% passes the current test example to 'predict_one' function</span>
+                this_prediction = mytree.predict_one(m, this_test_example);
+                <span class="comment">% adds the prediction for the current example to a 'predicitions' array</span>
+                predictions(end+1) = this_prediction;
+
+			<span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> prediction = predict_one(m, this_test_example)
+
+            <span class="comment">% calls the 'decend_tree' function to make a prediction</span>
+			node = mytree.descend_tree(m.tree, this_test_example);
+            <span class="comment">% each test example's corresponding leaf node prediction is returned</span>
+            <span class="comment">% to the predicition field (most common)</span>
+            prediction = node.prediction;
+
+		<span class="keyword">end</span>
+
+        <span class="keyword">function</span> node = descend_tree(node, this_test_example)
+
+            <span class="comment">% if the current node is a leaf node (no child node) = return</span>
+			<span class="keyword">if</span> isempty(node.children)
+                <span class="keyword">return</span>;
+            <span class="keyword">else</span>
+                <span class="comment">% decends the tree via comparing the current test example</span>
+                <span class="comment">% against each node's split feature &amp; split value</span>
+                <span class="comment">% once a leaf node is reached, that node's class predicition is returned</span>
+                <span class="keyword">if</span> this_test_example(node.splitFeature) &lt; node.splitValue
+                    <span class="comment">% recursive function calling itself until a leaf node is found</span>
+                    node = mytree.descend_tree(node.children{1}, this_test_example);
+                <span class="keyword">else</span>
+                    <span class="comment">% recursive function calling itself until a leaf node is found</span>
+                    node = mytree.descend_tree(node.children{2}, this_test_example);
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+
+		<span class="keyword">end</span>
+
+        <span class="comment">% describe a tree:</span>
+        <span class="keyword">function</span> describeNode(node)
+
+            <span class="comment">% if a leaf node has been reached...</span>
+			<span class="keyword">if</span> isempty(node.children)
+                <span class="comment">% print the leaf node's number and class predicition</span>
+                fprintf(<span class="string">'Node %d; %s\n'</span>, node.number, node.prediction);
+            <span class="keyword">else</span>
+                <span class="comment">% print the node's number and it's split rule</span>
+                fprintf(<span class="string">'Node %d; if %s &lt;= %f then node %d else node %d\n'</span>, node.number, node.splitFeatureName, node.splitValue, node.children{1}.number, node.children{2}.number);
+                <span class="comment">% decend the tree...</span>
+                mytree.describeNode(node.children{1});
+                mytree.describeNode(node.children{2});
+            <span class="keyword">end</span>
+
+		<span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">
+ans = 
+
+  mytree with no properties.
+
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+classdef mytree
+    
+    methods(Static)
+        
+        function m = fit(train_examples, train_labels)
+            
+			emptyNode.number = []; % stores the unique number of nodes
+            emptyNode.examples = []; % stores training examples
+            emptyNode.labels = []; % stores training labels
+            emptyNode.prediction = []; % a prediction basd on any class labels the node holds
+            emptyNode.impurityMeasure = []; % numeric measurement of the impurity of any class labels held by a node
+            emptyNode.children = {}; % stores the split node's data
+            emptyNode.splitFeature = []; % stores the column number which defines the split
+            emptyNode.splitFeatureName = []; % stores the name which defines the split
+            emptyNode.splitValue = []; % stores the value which defines the split
+
+            m.emptyNode = emptyNode;
+            
+            r = emptyNode; % creates an root empty node
+            r.number = 1; % assigns 1 as the root node's number
+            r.labels = train_labels; % copies all model training labels
+            r.examples = train_examples; % copies all model training examples
+            r.prediction = mode(r.labels); 
+            % generates single class prediction for the data 
+            % IF the root node cannot be further split
+
+            m.min_parent_size = 10; % minimum number of examples a node must contain before considering splitting
+            % (allowing deep decision trees can lead to overfitting training data)
+            m.unique_classes = unique(r.labels); % list of all the unique training labels
+            m.feature_names = train_examples.Properties.VariableNames; % list of all the examples' individual features
+			m.nodes = 1; % current number of nodes in the tree           (copying the names of the table's column headers)
+            m.N = size(train_examples, 1); % total number of training examples used to train the model
+
+            m.tree = mytree.trySplit(m, r);
+            % generates the tree by passing the root node to the function. 
+            % the function tests to see whether a node can be split into two child nodes with a reduced overall impurity 
+            % the function is recusive and only returns once it's no longer possible to split any more nodes 
+            % either due because the nodes don't contain enough training examples OR 
+            % because no split is available that will reduce the overall impurity
+
+        end
+        
+        function node = trySplit(m, node)
+            
+            % checks whether the current node is large enough to split
+            if size(node.examples, 1) < m.min_parent_size
+				return
+            end
+            
+            % measures the current impurity of the node's class labels using Gini's Diversity Index (GDI)
+            node.impurityMeasure = mytree.weightedImpurity(m, node.labels);
+
+            % loops through all the current node's data features (4)
+            for i=1:size(node.examples, 2)
+                
+                % evaulates all the possible splits on the data's features (column names)
+				fprintf('evaluating possible splits on feature %d/%d\n', i, size(node.examples, 2));
+                % sorts & indexes the examples based on the current feature
+				[ps,n] = sortrows(node.examples, i);
+                % stores the labels of the sorted examples based on index
+                ls = node.labels(n);
+                
+                biggest_reduction(i) = -Inf; 
+                biggest_reduction_index(i) = -1;
+                biggest_reduction_value(i) = NaN;
+                
+                % considers splitting the current node's stored training data 
+                % on every unique value (inner loop) of every feature (outer loop)
+                % if all features' values are unique, then 
+                % the number of possible splits = no. of examples - 1
+                for j=1:(size(ps,1)-1)
+                    % if the next feature value is the same as the current value it's skipped
+                    if ps{j,i} == ps{j+1,i}
+                    % (prevents trying to split on the same value more than once)
+                        continue;
+                    end
+                    
+                    % after generating all the possible splits from every unique value of every feature
+                    % a split is chosen based on which split reduces the impurity amongst the labels the most (GDI)
+                    
+                    % Then, the GDI of both potential child nodes are calulcated, added and subtracted from the parent node,
+                    % if the result is positive then the split produces a reduction in impurity
+                    this_reduction = node.impurityMeasure - (mytree.weightedImpurity(m, ls(1:j)) + mytree.weightedImpurity(m, ls((j+1):end)));
+                    
+                    % if the current split's reduction in impurity is greater than 
+                    % the previous reduction, the current becomes the biggest reduction
+                    % and is stored in the 'biggest_reduction' array
+                    if this_reduction > biggest_reduction(i)
+                        biggest_reduction(i) = this_reduction;
+                        % stores the index of each biggest reduction
+                        biggest_reduction_index(i) = j;
+                    end
+                end
+				
+            end
+            
+            
+            % winning reduction = value of greatest reduction within the array
+            % winning feature = feature of which the winning reduction value
+            [winning_reduction,winning_feature] = max(biggest_reduction);
+            % winning index = poisition of the value within the feature's column 
+            winning_index = biggest_reduction_index(winning_feature);
+
+            % if the node's impurity is greater than 0, it did not produce 
+            % a reduction in impurity and is returned
+            if winning_reduction <= 0
+                return
+            % if the node's impurity is less than or equal to 0,
+            % it did produce a reduction in impurity and is split...
+            else
+                % sorts & indexes the examples based on the feature of which the split happen 
+                [ps,n] = sortrows(node.examples,winning_feature);
+                % stores the labels of the examples based on their index
+                ls = node.labels(n);
+
+                % stores the index of the table column (label) of which the split will occur 
+                node.splitFeature = winning_feature;
+                % stores the name of the table column (label) of which the split will occur
+                node.splitFeatureName = m.feature_names{winning_feature};
+                % stores the value for which the split occur
+                % this method of calculation is used to determine the exact value 
+                % between the chosen value and the next value
+                node.splitValue = (ps{winning_index,winning_feature} + ps{winning_index+1,winning_feature}) / 2;
+
+                % deletes current node's examples & labels as they will
+                % move to the 2 child nodes after splitting
+                node.examples = [];
+                node.labels = []; 
+                % deletes current node's predicition as it will never be
+                % used during the prediction phase
+                node.prediction = [];
+
+                node.children{1} = m.emptyNode; % creates child node 1
+                m.nodes = m.nodes + 1; % adds 1 to the total number of unique nodes
+                node.children{1}.number = m.nodes; % assigns the new unique number to the new child node
+                % populates the node with examples from the 1st example to the index of the chosen split value
+                node.children{1}.examples = ps(1:winning_index,:);
+                % populates the node with labels from the 1st label to the index of the chosen split value
+                node.children{1}.labels = ls(1:winning_index);
+                % a prediciton based on the most common label within the new child node
+                node.children{1}.prediction = mode(node.children{1}.labels);
+                
+                node.children{2} = m.emptyNode; % creates child node 2
+                m.nodes = m.nodes + 1; % adds 1 to the total number of unique nodes
+                node.children{2}.number = m.nodes; % assigns the new unique number to the new child node
+                % populates the node with examples from the index of the chosen split value to the end
+                node.children{2}.examples = ps((winning_index+1):end,:); 
+                % populates the node with labels from the chosen split value to the end
+                node.children{2}.labels = ls((winning_index+1):end);
+                % a prediciton based on the most common label within the new child node
+                node.children{2}.prediction = mode(node.children{2}.labels);
+                
+                % performs the trySplit function on both new child nodes
+                % continues recursively until a split is no longer possible
+                node.children{1} = mytree.trySplit(m, node.children{1});
+                node.children{2} = mytree.trySplit(m, node.children{2});
+            end
+
+        end
+        
+        function e = weightedImpurity(m, labels)
+            
+            % weight variable is used re-scale the GDI scores 
+            % so a fair comparison is made between the impurity of a parent node vs 2 potential child nodes
+            weight = length(labels) / m.N;
+
+            summ = 0;
+            obsInThisNode = length(labels);
+            for i=1:length(m.unique_classes)
+                
+				pc = length(labels(labels==m.unique_classes(i))) / obsInThisNode;
+                summ = summ + (pc*pc);
+            
+			end
+            g = 1 - summ;
+            e = weight * g;
+
+        end
+
+        function predictions = predict(m, test_examples)
+
+            predictions = categorical;
+            
+            % loops through all test examples
+            for i=1:size(test_examples,1)
+                
+				fprintf('classifying example %i/%i\n', i, size(test_examples,1));
+                % extracts the current test example
+                this_test_example = test_examples{i,:};
+                % passes the current test example to 'predict_one' function
+                this_prediction = mytree.predict_one(m, this_test_example);
+                % adds the prediction for the current example to a 'predicitions' array
+                predictions(end+1) = this_prediction;
+            
+			end
+        end
+
+        function prediction = predict_one(m, this_test_example)
+            
+            % calls the 'decend_tree' function to make a prediction
+			node = mytree.descend_tree(m.tree, this_test_example);
+            % each test example's corresponding leaf node prediction is returned
+            % to the predicition field (most common)
+            prediction = node.prediction;
+        
+		end
+        
+        function node = descend_tree(node, this_test_example)
+            
+            % if the current node is a leaf node (no child node) = return
+			if isempty(node.children)
+                return;
+            else
+                % decends the tree via comparing the current test example 
+                % against each node's split feature & split value
+                % once a leaf node is reached, that node's class predicition is returned
+                if this_test_example(node.splitFeature) < node.splitValue
+                    % recursive function calling itself until a leaf node is found
+                    node = mytree.descend_tree(node.children{1}, this_test_example);
+                else
+                    % recursive function calling itself until a leaf node is found
+                    node = mytree.descend_tree(node.children{2}, this_test_example);
+                end
+            end
+        
+		end
+        
+        % describe a tree:
+        function describeNode(node)
+            
+            % if a leaf node has been reached...
+			if isempty(node.children)
+                % print the leaf node's number and class predicition
+                fprintf('Node %d; %s\n', node.number, node.prediction);
+            else
+                % print the node's number and it's split rule
+                fprintf('Node %d; if %s <= %f then node %d else node %d\n', node.number, node.splitFeatureName, node.splitValue, node.children{1}.number, node.children{2}.number);
+                % decend the tree...
+                mytree.describeNode(node.children{1});
+                mytree.describeNode(node.children{2});        
+            end
+        
+		end
+		
+    end
+end
+##### SOURCE END #####
+--></body></html>
